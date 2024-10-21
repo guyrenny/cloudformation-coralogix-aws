@@ -96,8 +96,8 @@ jobs:
       - name: Checkout destination repository
         uses: actions/checkout@v4
         with:
-          repository: coralogix/integration-definitions
-          token: ${{ secrets.GH_TOKEN }}
+          repository: guyrenny/test
+          token: ${{ secrets.DESTINATION_REPO_TOKEN }}
 
       - name: Create template-directory
         run: mkdir ./template-directory
@@ -170,43 +170,43 @@ jobs:
           git add .
           echo "branch_name=$branch_name" >> $GITHUB_ENV
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.DESTINATION_REPO_TOKEN }}
 
       - name: commit change
         uses: planetscale/ghcommit-action@v0.1.19
         with:
           commit_message: "Copy file from cloudformation repository"
-          repo: coralogix/integration-definitions
+          repo: guyrenny/test
           branch: ${{env.branch_name}}
           file_pattern: '*.yaml *.md'
         env:
-          GITHUB_TOKEN: ${{secrets.GH_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.DESTINATION_REPO_TOKEN}}
 
       - name: Create pull request
         run: |
           pr_url=""
           pr_name="sync from CF" # give the pr a defult name
-          last_pr_from_serverless=$(curl -s -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
+          last_pr_from_serverless=$(curl -s -H "Authorization: Bearer ${{ secrets.DESTINATION_REPO_TOKEN }}" \
           "https://api.github.com/repos/coralogix/coralogix-aws-serverless/pulls?state=closed&base=master&sort=updated&direction=desc" \
           | jq -r '.[0].title')
-          last_pr_from_shipper=$(curl -s -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
+          last_pr_from_shipper=$(curl -s -H "Authorization: Bearer ${{ secrets.DESTINATION_REPO_TOKEN }}" \
           "https://api.github.com/repos/coralogix/coralogix-aws-shipper/pulls?state=closed&base=master&sort=updated&direction=desc" \
           | jq -r '.[0].title')
           if [[  "${{ env.LAST_COMMIT_MESSAGE }}" == "$last_pr_from_serverless" ]]; then
             pr_name=$last_pr_from_serverless
-            pr_url=$(curl -s -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
+            pr_url=$(curl -s -H "Authorization: Bearer ${{ secrets.DESTINATION_REPO_TOKEN }}" \
             "https://api.github.com/repos/coralogix/coralogix-aws-serverless/pulls?state=closed&base=master&sort=updated&direction=desc" \
             | jq -r '.[0].html_url')
           elif [[ "${{ env.LAST_COMMIT_MESSAGE }}" == "$last_pr_from_shipper" ]]; then
             pr_name=$last_pr_from_shipper
-            pr_url=$(curl -s -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
+            pr_url=$(curl -s -H "Authorization: Bearer ${{ secrets.DESTINATION_REPO_TOKEN }}" \
             "https://api.github.com/repos/coralogix/coralogix-aws-shipper/pulls?state=closed&base=master&sort=updated&direction=desc" \
             | jq -r '.[0].html_url')
           else # get the last pr from CF in case that the trigger to the sync was from CF 
-            pr_name=$(curl -s -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
+            pr_name=$(curl -s -H "Authorization: Bearer ${{ secrets.DESTINATION_REPO_TOKEN }}" \
           "https://api.github.com/repos/coralogix/cloudformation-coralogix-aws/pulls?state=closed&base=master&sort=updated&direction=desc" \
           | jq -r '.[0].title')
-            pr_url=$(curl -s -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
+            pr_url=$(curl -s -H "Authorization: Bearer ${{ secrets.DESTINATION_REPO_TOKEN }}" \
             "https://api.github.com/repos/coralogix/cloudformation-coralogix-aws/pulls?state=closed&base=master&sort=updated&direction=desc" \
             | jq -r '.[0].html_url')
           fi
@@ -217,4 +217,4 @@ jobs:
             gh pr create --base master --head "${{env.branch_name}}" --title "${pr_name}" --body "This pull request syncs the changes from the cloudformation repo to this repo. link to the original PR $pr_url "
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.DESTINATION_REPO_TOKEN }}
