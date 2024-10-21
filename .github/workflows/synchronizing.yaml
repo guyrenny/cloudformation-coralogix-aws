@@ -186,27 +186,27 @@ jobs:
         run: |
           pr_url=""
           pr_name="sync from CF" # give the pr a defult name
-          last_pr_from_serverless=$(curl -s -H "Authorization: Bearer ${{ secrets.DESTINATION_REPO_TOKEN }}" \
+          last_pr_from_serverless=$(curl -s \
           "https://api.github.com/repos/coralogix/coralogix-aws-serverless/pulls?state=closed&base=master&sort=updated&direction=desc" \
           | jq -r '.[0].title')
-          last_pr_from_shipper=$(curl -s -H "Authorization: Bearer ${{ secrets.DESTINATION_REPO_TOKEN }}" \
+          last_pr_from_shipper=$(curl -s \
           "https://api.github.com/repos/coralogix/coralogix-aws-shipper/pulls?state=closed&base=master&sort=updated&direction=desc" \
           | jq -r '.[0].title')
           if [[  "${{ env.LAST_COMMIT_MESSAGE }}" == "$last_pr_from_serverless" ]]; then
             pr_name=$last_pr_from_serverless
-            pr_url=$(curl -s -H "Authorization: Bearer ${{ secrets.DESTINATION_REPO_TOKEN }}" \
+            pr_url=$(curl -s \
             "https://api.github.com/repos/coralogix/coralogix-aws-serverless/pulls?state=closed&base=master&sort=updated&direction=desc" \
             | jq -r '.[0].html_url')
           elif [[ "${{ env.LAST_COMMIT_MESSAGE }}" == "$last_pr_from_shipper" ]]; then
             pr_name=$last_pr_from_shipper
-            pr_url=$(curl -s -H "Authorization: Bearer ${{ secrets.DESTINATION_REPO_TOKEN }}" \
+            pr_url=$(curl -s \
             "https://api.github.com/repos/coralogix/coralogix-aws-shipper/pulls?state=closed&base=master&sort=updated&direction=desc" \
             | jq -r '.[0].html_url')
           else # get the last pr from CF in case that the trigger to the sync was from CF 
-            pr_name=$(curl -s -H "Authorization: Bearer ${{ secrets.DESTINATION_REPO_TOKEN }}" \
+            pr_name=$(curl -s \
           "https://api.github.com/repos/coralogix/cloudformation-coralogix-aws/pulls?state=closed&base=master&sort=updated&direction=desc" \
           | jq -r '.[0].title')
-            pr_url=$(curl -s -H "Authorization: Bearer ${{ secrets.DESTINATION_REPO_TOKEN }}" \
+            pr_url=$(curl -s \
             "https://api.github.com/repos/coralogix/cloudformation-coralogix-aws/pulls?state=closed&base=master&sort=updated&direction=desc" \
             | jq -r '.[0].html_url')
           fi
